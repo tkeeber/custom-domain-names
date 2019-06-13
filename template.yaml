@@ -1,0 +1,37 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Custom Domain Name Template
+
+Parameters:
+  DomainName:
+    Type: "String"
+    Description: "The custom domain name"
+
+Resources:
+  MyDomainName:
+    Type: AWS::ApiGateway::DomainName
+    Properties:
+      DomainName: !Ref DomainName
+      EndpointConfiguration:
+        Types:
+          - "REGIONAL"
+
+  GatewayApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      EndpointConfiguration: REGIONAL
+        
+  Deployment:
+    DependsOn: MyDomainName
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      RestApiId: !Ref GatewayApi
+      Description: "Hack to stop Stage name breaking on deployment"
+
+  BasePathMapping:
+    Type: AWS::ApiGateway::BasePathMapping
+    DependsOn: Deployment
+    Properties:
+      BasePath: ""
+      DomainName: !Ref MyDomainName
+      RestApiId: !Ref Deployment
+      Stage: Prod
